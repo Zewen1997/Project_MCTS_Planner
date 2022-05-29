@@ -5,15 +5,23 @@
 #include <pybind11/stl.h>
 
 
-#include "mcts_interface.h"
+#include "mcts_data_handler.h"
 #include "mcts_planner.h"
 #include "mcts_data_handler.h"
 #include "ei/2dtypes.hpp"
 #include "ei/2dintersection.hpp"
 
 PYBIND11_MODULE(MCTS, m) {
+    pybind11::enum_<ActionType>(m, "ActionType")
+            .value("DEC", DEC)
+            .value("CON", CON)
+            .value("ACC", ACC)
+            .value("EMERGENCY_BRAKE", EMERGENCY_BRAKE)
+            .export_values();
+
     pybind11::class_<EgoState>(m, "EgoState")
-            .def(pybind11::init<const float, const float, const float, const float, const float, const float, const float>());
+            .def(pybind11::init<const float, const float, const float, const float, const float, const float, const float>())
+            .def("print", &EgoState::print);
 
     pybind11::class_<ObjectState>(m, "ObjectState")
             .def(pybind11::init<const std::vector<float>, const float, const float, const float, const float, const float, const float, const int>());
@@ -34,21 +42,30 @@ PYBIND11_MODULE(MCTS, m) {
     pybind11::class_<Route>(m, "Route")
             .def(pybind11::init<std::unordered_map <int, std::vector<Waypoint>>& >());
 
-    pybind11::class_<MCTSInterface>(m, "MCTSInterface")
+    pybind11::class_<MCTSDataHandler>(m, "MCTSDataHandler")
             .def(pybind11::init<>())
-            .def("setEnvironmentState", &MCTSInterface::setEnvironmentState)
-            .def("getDecisions", &MCTSInterface::getDecisions);
+            .def("setEnvironmentState", &MCTSDataHandler::setEnvironmentState)
+            .def("getEnvironmentState", &MCTSDataHandler::getEnvironmentState);
+
+    pybind11::class_<MCTSState>(m, "MCTSState")
+            .def(pybind11::init<>())
+            .def("createStartState",&MCTSState::createStartState)
+            .def("calculateNextEgoState", &MCTSState::calculateNextEgoState)
+            .def("setReferencePathEgo", &MCTSState::setReferencePathEgo)
+            .def("getReferencePathEgo", &MCTSState::getReferencePathEgo)
+            .def("setWaypointEgo", &MCTSState::setWaypointEgo)
+            .def("getWaypointEgo", &MCTSState::getWaypointEgo);
 
 
     pybind11::class_<MCTSPlanner>(m, "MCTSPlanner")
             .def(pybind11::init<>())
             .def("processInit", &MCTSPlanner::processInit)
             .def("processRun", &MCTSPlanner::processRun)
-            .def("interface", &MCTSPlanner::interface);
+            .def("setDecisions", &MCTSPlanner::setDecisions)
+            .def("getDecisions", &MCTSPlanner::getDecisions)
+            .def("setReferencePathEgo", &MCTSPlanner::setReferencePathEgo)
+            .def("getReferencePathEgo", &MCTSPlanner::getReferencePathEgo);
 
-    pybind11::class_<DataHandler>(m, "DataHandler")
-            .def(pybind11::init<>())
-            .def("distance", &DataHandler::distance)
-            .def("getNearstVehicles", &DataHandler::getNearstVehicles);
+
 
 }

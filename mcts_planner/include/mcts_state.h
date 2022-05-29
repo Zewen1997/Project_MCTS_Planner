@@ -2,17 +2,19 @@
 #define MCTS_STATE_H
 
 #include "mcts_utils.h"
-#include "mcts_interface.h"
+#include "mcts_data_handler.h"
 
 class MCTSState
 {
  private:
-  EnvironmentState state_;  // Define MCTS Planner State Space
-  MCTSInterface mcts_interface_; 
+  EnvironmentState                   state_;  // Define MCTS Planner State Space
+  //std::shared_ptr<MCTSDataHandler>   mcts_data_handler_;
+  MCTSDataHandler  mcts_data_handler_;
 
  public:
   // copy and assignment operators should perform a DEEP clone of the given state
   MCTSState();
+  // MCTSState(std::shared_ptr<MCTSDataHandler> mcts_data_handler_);
   MCTSState(const MCTSState& other);
   MCTSState& operator=(const MCTSState& other);
 
@@ -46,10 +48,14 @@ class MCTSState
 
   /* -------- Model related functions -------- */
   EgoState                 calculateNextEgoState(EnvironmentState const& state, ActionType const& action);
-  std::vector<ObjectState> calculateNextObjectsState(EnvironmentState const& state, const int depth, std::unordered_map<int, std::vector<float>> const reference_path, std::unordered_map<int, Route> route_vehicle) const;
+  std::vector<ObjectState> calculateNextObjectsState(EnvironmentState const& state, const int depth, std::unordered_map<int, std::vector<float>> const reference_path, std::unordered_map<int, Route> route_vehicle);
   StatesStatus             calculateNextStatus(EgoState const& next_ego_state, std::vector<ObjectState> const& next_objects_state) const;
   float                    getAcceleration(const ActionType action) const;
   std::string              getAccelerationType(const ActionType action) const;
+  void                     setReferencePathEgo(std::vector<float>& reference_path_ego);
+  std::vector<float>       getReferencePathEgo();
+  void                     setWaypointEgo(std::vector<Waypoint>& waypoint_ego);
+  std::vector<Waypoint>    getWaypointEgo();
 
 };
 

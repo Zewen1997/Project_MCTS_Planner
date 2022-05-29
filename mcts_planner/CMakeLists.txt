@@ -3,7 +3,6 @@
 pybind11_add_module(MCTS 
    src/main.cpp 
    src/mcts_planner.cpp 
-   src/mcts_interface.cpp 
    src/mcts_state.cpp
    src/mcts_timer.cpp
    src/mcts_data_handler.cpp)

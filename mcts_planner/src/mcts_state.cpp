@@ -11,10 +11,9 @@
 
 using namespace ei;
 
-MCTSState::MCTSState()
-{
-  mcts_interface_ = MCTSInterface();
-}
+MCTSState::MCTSState(){mcts_data_handler_ = MCTSDataHandler();}
+//MCTSState::MCTSState(std::shared_ptr<MCTSDataHandler> mcts_data_handler){mcts_data_handler_ = mcts_data_handler;}
+
 
 MCTSState::MCTSState(const MCTSState &other)
 {
@@ -154,40 +153,58 @@ std::string MCTSState::printState() const
 
 
 EgoState MCTSState::calculateNextEgoState(EnvironmentState const& state, ActionType const& action) 
-{
+{ 
   EgoState current_ego_state = state.getEgoState();
   EgoState next_ego_state;
+  next_ego_state = current_ego_state;
   Waypoint waypoint_right;
   Waypoint waypoint_left;
-  std::vector<float> reference_path = mcts_interface_.getReferencePathEgo();
-  std::vector<Waypoint> waypoint_ego = mcts_interface_.getWaypointEgo();
-  float   time_step = 1.0f;  // TODO time_step as a parameter
-  float   weight;
+  std::vector<float> reference_path = mcts_data_handler_.getReferencePathEgo();
 
+  std::cout<<"reference_path_size:"<<std::endl;
+  std::cout<<reference_path.size()<<std::endl;
+
+
+  std::vector<Waypoint> waypoint_ego = mcts_data_handler_.getWaypointEgo();
+  std::cout<<"waypoint_ego_size:"<<std::endl;
+  std::cout<<waypoint_ego.size()<<std::endl;
+
+  float   time_step = 0.1f;  // TODO time_step as a parameter
+  float   weight;
+  
   // Get acceleration value
   const float acceleration = getAcceleration(action);
-  next_ego_state.ego_station = current_ego_state.ego_station * time_step + 0.5 * acceleration * pow(time_step, 2);
+  next_ego_state.ego_station = current_ego_state.ego_station + current_ego_state.ego_station * time_step + 0.5 * acceleration * pow(time_step, 2);
+  std::cout<<next_ego_state.ego_station<<std::endl;
   int index = std::distance(reference_path.begin(), std::lower_bound(reference_path.begin(), reference_path.end(), next_ego_state.ego_station));
+  std::cout<<"index: "<<index<<std::endl;
+
   if (index >= reference_path.size()){
     index = reference_path.size() - 1;
-    if (index != 0 ){
-      waypoint_right = waypoint_ego[index];
-      waypoint_left = waypoint_ego[index - 1];
-      weight = (next_ego_state.ego_station - waypoint_left.station) / (waypoint_right.station - waypoint_left.station);
-      next_ego_state.x = weight * (waypoint_right.x - waypoint_left.x) + waypoint_left.x;
-      next_ego_state.y = weight * (waypoint_right.y - waypoint_left.y) + waypoint_left.y;
-      next_ego_state.psi = weight * (waypoint_right.psi - waypoint_left.psi) + waypoint_left.psi;
-      next_ego_state.velocity = current_ego_state.velocity + acceleration * time_step;
-    }
-  } 
+  }
+  
+  if (index != 0 ){
+    
+    waypoint_right = waypoint_ego[index];
+    waypoint_left = waypoint_ego[index - 1];
+    weight = (next_ego_state.ego_station - waypoint_left.station) / (waypoint_right.station - waypoint_left.station);
+    next_ego_state.x = weight * (waypoint_right.x - waypoint_left.x) + waypoint_left.x;
+    next_ego_state.y = weight * (waypoint_right.y - waypoint_left.y) + waypoint_left.y;
+    next_ego_state.psi = weight * (waypoint_right.psi - waypoint_left.psi) + waypoint_left.psi;
+    next_ego_state.velocity = current_ego_state.velocity + acceleration * time_step;
+    
+  }
+  
+  
+  
+  
   return next_ego_state;
 }
 
-std::vector<ObjectState> MCTSState::calculateNextObjectsState(EnvironmentState const& state, const int depth, std::unordered_map<int, std::vector<float>> reference_path, std::unordered_map<int, Route> route_vehicle) const
+std::vector<ObjectState> MCTSState::calculateNextObjectsState(EnvironmentState const& state, const int depth, std::unordered_map<int, std::vector<float>> reference_path, std::unordered_map<int, Route> route_vehicle)
 {
   std::vector<ObjectState>  next_objects_state;
   std::vector<ObjectState> sorted_objects_state;
-  DataHandler data_handler;
   Waypoint waypoint_right;
   Waypoint waypoint_left;
   float time_step = 1.0f;  // TODO time_step as a parameter
@@ -199,7 +216,7 @@ std::vector<ObjectState> MCTSState::calculateNextObjectsState(EnvironmentState c
     // calculate each object state of next time step
     EgoState current_ego_state = state.getEgoState();
     std::vector<ObjectState> current_objects_state = state.getObjectState();
-    std::vector<SortVehicle> sorted_vehicles = data_handler.getNearstVehicles(current_ego_state, current_objects_state);
+    std::vector<SortVehicle> sorted_vehicles = mcts_data_handler_.getNearstVehicles(current_ego_state, current_objects_state);
     
     
     
@@ -309,4 +326,26 @@ std::string MCTSState::getAccelerationType(const ActionType action) const
       break;
   }
   return acceleration_tpye;
+}
+
+void MCTSState::setReferencePathEgo(std::vector<float>& reference_path_ego)
+{   
+    mcts_data_handler_.setReferencePathEgo(reference_path_ego);
+
+}
+
+std::vector<float> MCTSState::getReferencePathEgo()
+{
+  return mcts_data_handler_.getReferencePathEgo();
+}
+
+void MCTSState::setWaypointEgo(std::vector<Waypoint>& waypoint_ego)
+{   
+    mcts_data_handler_.setWaypointEgo(waypoint_ego);
+
+}
+
+std::vector<Waypoint> MCTSState::getWaypointEgo()
+{
+  return mcts_data_handler_.getWaypointEgo();
 }

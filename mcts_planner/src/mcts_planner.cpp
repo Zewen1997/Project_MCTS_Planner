@@ -1,20 +1,14 @@
 #include "mcts_planner.h"
 
-MCTSPlanner::MCTSPlanner()
-{
-    mcts_interface_ = MCTSInterface();
-}
-
-MCTSInterface& MCTSPlanner::interface()
-{
-    return mcts_interface_;
-}
+MCTSPlanner::MCTSPlanner(){mcts_data_handler_ = MCTSDataHandler();}
 
 void MCTSPlanner::processInit()
 {   
     // MCTS Initialization
-    mcts_state_  = MCTSState();
+    
     mcts_solver_ = MCTS<MCTSState, ActionType>();
+    //mcts_data_handler_ = std::make_shared<MCTSDataHandler>();
+    mcts_state_  = MCTSState();
 
     // MCTS Parameters Initialization
     mcts_solver_.uct_k_            = 2;
@@ -29,7 +23,7 @@ void MCTSPlanner::processInit()
 void MCTSPlanner::processRun()
 {
    // create current state
-   mcts_state_.createStartState(mcts_interface_.getEnvironmentState());
+   mcts_state_.createStartState(mcts_data_handler_.getEnvironmentState());
    
    // search on current state
    mcts_solver_.search(mcts_state_);
@@ -66,7 +60,29 @@ void MCTSPlanner::updateDecisionsVector()
   }
 
 //    mcts_interface_.setDecisions(accelerations);
-    std::vector<float>       test_accelarations(5, 1.0);
-    mcts_interface_.setDecisions(test_accelarations);
+    std::vector<float>       test_accelarations(5, 2.0);
+    mcts_data_handler_.setDecisions(test_accelarations);
 
+}
+
+void MCTSPlanner::setDecisions(std::vector<float>& decisions)
+{
+  mcts_data_handler_.setDecisions(decisions);
+}
+
+
+std::vector<float> MCTSPlanner::getDecisions()
+{
+  return mcts_data_handler_.getDecisions();
+}
+
+void MCTSPlanner::setReferencePathEgo(std::vector<float>& reference_path_ego)
+{   
+    mcts_data_handler_.setReferencePathEgo(reference_path_ego);
+
+}
+
+std::vector<float> MCTSPlanner::getReferencePathEgo()
+{
+  return mcts_data_handler_.getReferencePathEgo();
 }

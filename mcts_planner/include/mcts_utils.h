@@ -99,6 +99,14 @@ struct Waypoint
     float kappa;
     Waypoint(){}
     Waypoint(const float in_x, const float in_y, const float in_s, const float in_psi, const float in_kappa):x(in_x), y(in_y), station(in_s), psi(in_psi), kappa(in_kappa){}
+    Waypoint& operator=(const Waypoint& other)
+    {   
+        x = other.x;
+        y = other.y;
+        station = other.station;
+        psi = other.psi;
+        kappa = other.kappa;
+    }
 };
 
 
