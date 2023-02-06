@@ -1,0 +1,3 @@
+[submodule "Project_MCTS_Planner/third_party/Epsilon-Intersection/Epsilon-Intersection"]
+	path = Project_MCTS_Planner/third_party/Epsilon-Intersection/Epsilon-Intersection
+	url = https://github.com/Jojendersie/Epsilon-Intersection
